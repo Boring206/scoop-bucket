@@ -62,7 +62,7 @@ jobs:
           $env:PATH = "$env:USERPROFILE\scoop\shims;$env:PATH"
           scoop bucket add boring206 "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY"
           $manifest = Get-Content "$env:USERPROFILE\scoop\buckets\boring206\bucket\wslbak.json" -Raw | ConvertFrom-Json
-          scoop install boring206/wslbak
+          scoop install wslbak
           $version = wslbak --version
           $version
           if ($version -ne "wslbak $($manifest.version)") { Write-Error "expected wslbak $($manifest.version)"; exit 1 }
