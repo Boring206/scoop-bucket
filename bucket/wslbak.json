@@ -1,16 +1,16 @@
 {
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Scheduled, verified backups of a WSL distro without stopping it, and one-line restore.",
     "homepage": "https://github.com/Boring206/wslbak",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/Boring206/wslbak/releases/download/v0.1.0/wslbak-0.1.0-windows-x64.zip",
-            "hash": "8f88e4b0ee3006f0c7071ef79a17f8889df54a6c05a220d26fc387581b41ab62"
+            "url": "https://github.com/Boring206/wslbak/releases/download/v0.1.1/wslbak-0.1.1-windows-x64.zip",
+            "hash": "c5aa5005651a10c4c154452eed398d8b9fa38dcd71c13647d4b09c05d5288227"
         },
         "arm64": {
-            "url": "https://github.com/Boring206/wslbak/releases/download/v0.1.0/wslbak-0.1.0-windows-arm64.zip",
-            "hash": "927abdfda31cddb60c247f8c056fa5b31f205027eb0874f8086dba2f221ea05d"
+            "url": "https://github.com/Boring206/wslbak/releases/download/v0.1.1/wslbak-0.1.1-windows-arm64.zip",
+            "hash": "f003a3550d48c747e8fba38a5667e91795f27250b318b4daa9b2daa341c39b04"
         }
     },
     "bin": "wslbak.exe",
