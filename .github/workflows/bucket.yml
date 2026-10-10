@@ -1,0 +1,74 @@
+# Keeps bucket/wslbak.json equal to the manifest in the newest wslbak release, and checks that
+# installing from this bucket works.
+#
+# Every wslbak release contains package-manifests.zip, written by the workflow that built the
+# zips, so the version and the checksums in the manifest come from the same run as the files.
+# This workflow copies that manifest here. It runs once a day; to pick up a release at once:
+#   gh workflow run bucket -R Boring206/scoop-bucket
+name: bucket
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency: bucket
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Take the manifest from the newest wslbak release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download -R Boring206/wslbak -p package-manifests.zip -D "$RUNNER_TEMP/release"
+          unzip -q "$RUNNER_TEMP/release/package-manifests.zip" -d "$RUNNER_TEMP/release"
+          jq -e '.version and .architecture."64bit".hash and .architecture.arm64.hash' "$RUNNER_TEMP/release/scoop/wslbak.json"
+          cp "$RUNNER_TEMP/release/scoop/wslbak.json" bucket/wslbak.json
+      - id: commit
+        run: |
+          if git diff --quiet; then
+            echo "bucket/wslbak.json is up to date ($(jq -r .version bucket/wslbak.json))."
+            echo "changed=no" >>"$GITHUB_OUTPUT"
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -am "wslbak: update to $(jq -r .version bucket/wslbak.json)"
+            git push
+            echo "changed=yes" >>"$GITHUB_OUTPUT"
+          fi
+
+  # The daily run installs only when the manifest changed.
+  install:
+    needs: update
+    if: github.event_name != 'schedule' || needs.update.outputs.changed == 'yes'
+    runs-on: windows-latest
+    steps:
+      - name: Install wslbak from this bucket, the way the README says
+        shell: pwsh
+        run: |
+          Invoke-Expression "& {$(Invoke-RestMethod get.scoop.sh)} -RunAsAdmin"
+          $env:PATH = "$env:USERPROFILE\scoop\shims;$env:PATH"
+          scoop bucket add boring206 "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY"
+          $manifest = Get-Content "$env:USERPROFILE\scoop\buckets\boring206\bucket\wslbak.json" -Raw | ConvertFrom-Json
+          scoop install boring206/wslbak
+          $version = wslbak --version
+          $version
+          if ($version -ne "wslbak $($manifest.version)") { Write-Error "expected wslbak $($manifest.version)"; exit 1 }
+          # The scheduled task runs wslbakw.exe, which has to sit next to wslbak.exe.
+          $folder = scoop prefix wslbak
+          Get-ChildItem $folder | Format-Table Name, Length
+          if (-not (Test-Path "$folder\wslbakw.exe")) { Write-Error "wslbakw.exe is missing"; exit 1 }
+          wslbak --lang en --help | Select-Object -First 3
+          scoop uninstall wslbak
