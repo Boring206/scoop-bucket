@@ -16,7 +16,7 @@ release, and then installs wslbak from the bucket on a Windows runner to check t
 
 ---
 
-[wslbak](https://github.com/Boring206/wslbak/blob/main/README.zh-TW.md) 的 [Scoop](https://scoop.sh) bucket。
+[wslbak](https://github.com/Boring206/wslbak/blob/main/README-zh-TW.md) 的 [Scoop](https://scoop.sh) bucket。
 wslbak 替 WSL distro 做排程備份：不用停機、每次備份完自動試還原，還原只要一行指令。
 
 ```
